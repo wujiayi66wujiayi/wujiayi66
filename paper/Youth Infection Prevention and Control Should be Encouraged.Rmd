@@ -1,0 +1,186 @@
+---
+title: "Youth Infection Prevention and Control Should be Encouraged"
+author: "Jiayi Wu"
+date: "2022/2/4"
+output: pdf_document
+abstract: "This report utilizes data on reported communicable diseases in Toronto to: (1) Comparatively analyze the number of young people diagnosed with infectious diseases and their infection rates by the factor of age group and sex. (2) To review relevant literature, assess the underlying reasons of the large number of young people diagnosed with infectious illnesses. Then provide appropriate suggestions based on the study’s findings, and ultimately mobilise young people’s knowledge of infectious disease prevention and control."
+bibliography: ref_list.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r,include=FALSE}
+# instll packages
+install.packages("opendatatoronto")
+install.packages("dolyr")
+install.packages("tidyverse")
+install.packages("kableExtra")
+
+library(opendatatoronto)
+library(dplyr)
+library(tidyverse)
+library(kableExtra)
+
+# get package
+package <- show_package("dcb1299b-6794-4d7e-aca1-e957d7668ce9")
+package
+ 
+# get all resources for this package
+resources <- list_package_resources("dcb1299b-6794-4d7e-aca1-e957d7668ce9")
+ 
+# identify datastore resources; by default, Toronto Open Data sets datastore resource format to CSV for non-geospatial and GeoJSON for geospatial resources
+datastore_resources <- filter(resources, tolower(format) %in% c('csv', 'geojson'))
+ 
+# load the first datastore resource as a sample
+data <- filter(datastore_resources, row_number()==1) %>% get_resource()
+df<-data
+```
+
+# Introduction
+
+The number of deaths and sufferings endured by Toronto residents during the COVID-19 pandemic will have long-lasting consequences, including the heartbreaking loss of friends and loved ones. [@Herhalt] Nonetheless, the crisis reaction demonstrates Toronto's communal kindness and resilience. Residents of Toronto have mostly listened to and followed the guidance of public health professionals in the months since the issue started. When asked, individuals restricted their activities and remained as close to home as feasible. Certain firms have been forced to close their doors altogether, at tremendous cost. Other companies, as well as their workers, provided critical products and services. Businesses and their workers adapted to their new environment and successfully handled professional and personal challenges. [@Allan] Neighbors assisted their neighbors. Morale was increased via innovative expressions of gratitude and random acts of kindness. However, as the pandemic dragged on and unlimited extension on the COVID-19 restriction policy, people start losing patients and suffer from the mandate restriction. For example, on Saturday, Feb 5th, 2022, a large group of organized truck protectors came to downtown Toronto to block the street, they waved the flag said no mandate vaccination. [@Jackson] Residents of Ottawa, where the uproar has been going on for a week, have become more enraged by the imposition, with some even filing a class-action lawsuit against the demonstrators. [@Press]
+
+\ 
+It is important for people to kind in mind how those diseases threaten our families and life. The more caution and restraint we show today, the less likely another terrible wave of cases will cripple health systems and result in the loss of thousands more lives. The purpose that I chose this topic is to warn people don’t relax anti-virus restrictions now. The difficulty is not to control this disease, it is how to gather people and government to stick together to face and act on solving the problem rather than pursuing self-interest at this moment. Communicable diseases in Toronto, which summary statistics on infectious diseases reported to the City of Toronto in 2018. Toronto publishes monthly surveillance statistics for the current year. Open Statistics also includes full summaries of 2018 data by gender and age group. [@CoT]
+
+\ 
+I will use a variety of statistics in this report to analyse the number of young people diagnosed with infectious diseases, beginning with gender and age. And then consult pertinent publications to dig further into the causes behind the high prevalence of infectious illnesses among children and adolescents. Finally, relevant suggestions for the prevention and control of infectious illnesses in children and adolescents are made.
+\ 
+
+\newpage 
+
+# Data
+
+\ 
+
+## Data Source
+
+This research takes data from Annual Summary of Reportable Communicable Diseases [@ASRCD]. The ASRCD presents statistics on reportable communicable disease [@CDR] reported to the City of Toronto in 2018. Reportable Communicable Diseases are diseases of public health significance designated as reportable in the province of Ontario. In layman's words, it is a transmissible sickness. The observed disease datasets in this analysis were acquired in csv format from the City of Toronto Open Data Portal through using the R package named opendatatoronto [@opendatatoronto].The Annual Summary of Reportable Communicable Diseases data set. This data is updated on a yearly basis, and the most current version should be regarded as the most accurate.
+
+\   
+
+## Methodology and Data Collection
+
+From 2013 to 2018, the database consists of information on all cases of reportable communicable disease recorded by by Toronto Public Health (TPH) in accordance with the Health Protection and Promotion Act, Ontario Regulations 559/91, [@HPPA] which requires notice to the Medical Officer of Health for the region in which the patient lives of all proven or suspected reportable disorders.
+\ 
+
+The collection of dataset contains information on a variety of subjects, including disease name [@List], patients’sex, and several age groups. These components allow the public to get a basic overview of the state of infectious illnesses in Toronto and to heighten their awareness of the need of infectious disease prevention and control. The population of this data set refers to all individuals diagnosed with infectious illnesses in Toronto. However, the data is not a true picture of Toronto's real incidence rates, since the reports included in this document only pertain to persons who resided in Toronto at the time of diagnosis. 
+\ 
+In the case of some individuals who lived and caught an infection in Toronto but was diagnosed in another country, there may exist non-response bias in this research. All data for Toronto in these tables comes from the Integrated Public Health Information System [@iPHIS], the province's communicable illness information system. As iPHIS metioned, due to insufficient sex data, the total number of reported cases by sex may not match the overall number of reported cases for a disease, which is second factor to increase non-responding bias in this report.
+
+\ 
+
+## Data Characteristic and Data Summary
+
+The reported diseases dataset collects all cases of Reportable Communicable Diseases that happened in Toronto in 2018. There are 114 observations (patients) in the dataset and 23 variables: observation ID, Disease (disease name), sex, and several different age groups. Among those variables, sex and disease are categorical variables and others are numerical. Originally, there were 118 rows in the dataset. The last 4 rows contained additional notes referring to data explanation but there were not any statistics. Therefore, I removed the last four rows by the function slice [@slice] under the tidyverse package. The following is a sample view of the dataset. 
+
+\newpage
+
+```{r , include=TRUE}
+# Clean data
+## remove N/A value
+data_cleaned <- df %>%
+  slice(1:114) 
+data_cleaned
+```
+
+\ 
+
+## Data Summary
+
+\ 
+
+### The Bar Plot of Disease Cases VS.Sex
+
+Men and women have considerable disparities in physical structure and ability, and I'm curious if these differences in physical structure and ability will result in variances in their immune systems, finally affecting their risks of catching infectious illnesses. In order to see whether or not there was a statistically significant difference in infection rates between men and women, the bar plot of disease cases vs.sex was created down below.
+
+
+
+```{r, fig.cap ="", fig.width=12, fig.height=6, include=TRUE}
+data_cleaned %>% 
+  ggplot(aes(x= `Sex*`, fill =Disease )) + geom_bar() + theme_classic()+
+  geom_text(stat = 'count',aes(label =..count.., vjust =-2))+
+  labs(x = "Sex", y = "Number of Cases", title = "The Bar Plot of Disease Cases VS.Sex")
+```
+
+
+
+
+In the graph, there does not exist a significant difference between the bar of female and the bar of male, which indicates males and females are equally susceptible to infection by a diversity of infectious illnesses. Although,taking a broader view, the difference in the incidence of infectious diseases between men and women is not significant, some special situations still need to be considered. Pregnant women's susceptibility to infectious infections and the chance of developing more serious problems. Due to the significant changes in the immune system that occur during pregnancy, women may become more vulnerable to some infectious infections. Pregnancy, for example, decreases women's immune response to malaria in regions with high transmission, rendering them more vulnerable. Additionally, many disorders are associated with more severe problems in pregnant women [@WHO].
+
+\ 
+
+### The Box Plot of Disease Cases for Age Group 20-24 and 25-29 VS.Sex
+
+To determine if pregnant women are more prone to get infectious illnesses, I developed a graph using data from women ages 20-24 and 25-29, since the majority of women opt to become pregnant between the ages of 20 and 30.
+
+\ 
+
+```{r, fig.cap ="", fig.width=3, fig.height=3, include=TRUE}
+data_cleaned %>% 
+  ggplot(aes(y = 20-24, x=`Sex*`)) + geom_boxplot(color='Blue') + theme_classic()+
+  labs(x = "Sex", y = "Number of Cases", title = "The Box Plot of Disease Cases for Age Group 20-24 VS.Sex")
+
+data_cleaned %>% 
+  ggplot(aes(y = 25-29, x=`Sex*`)) + geom_boxplot(color='Blue') + theme_classic()+
+  labs(x = "Sex", y = "Number of Cases", title = "The Box Plot of Disease Cases for Age Group 25-29 VS.Sex")
+```
+
+\ 
+
+Due to a paucity of sample data, the boxplot seems almost straight-line, reducing the accuracy of the analysis conclusions. In comparison, men and women are virtually equally likely to be afflicted with infectious illnesses throughout the stage of their lives when they have the most children. However, upon closer examination, it seems that women have somewhat greater infection rates than males throughout their reproductive years, but the difference is not statistically significant. Recent studies of COVID-19 have shown the upper respiratory tract is enlarged during pregnancy due to the high levels of estrogen and progesterone, and the pregnant woman's limited lung expansion leaves her vulnerable to respiratory infections [@HongLiu]. In particular, women should strengthen the awareness of prevention and control of infectious diseases during pregnancy preparation.
+
+\ 
+
+### The Bar Plot of Disease Cases for Age Group 20-24
+
+Many young people were opposed to quarantine and the one-second guideline during the. To gain a better understanding of infectious diseases affecting children and adolescents, the bar plot of disease cases for age group 20-24 was created.
+
+
+```{r , fig.cap ="",fig.width=6, fig.height=3,include=TRUE}
+data_cleaned %>% 
+  ggplot(aes(x= 20-24, fill = `Sex*` )) + geom_bar() + theme_classic()+
+  geom_text(stat = 'count',aes(label =..count.., vjust =-2))+
+  labs(x = "Patient in Age Group of 20-24", y = "Number of Cases", title = "The Bar Plot of Disease Cases VS.Sex")
+```
+
+
+The plot demonstrates that children and adolescents are more prone to get infectious illnesses than other age groups. Young individuals are unquestionably more fit and healthy than elderly adults and children. Additionally, they have better immune systems, which aid them in combating viruses and germs. 
+\ 
+Young individuals are susceptible to coronavirus infection for a variety of reasons. Many young adults in their twenties and thirties work in health care, food service, and critical services like public transportation. Young individuals often labor in high-risk locations for coronavirus exposure. 
+\ 
+Because young individuals are less prone to have severe instances of COVID-19, they may develop an inflated feeling of security. [@Lisa] They may believe that mixing in big crowds, attending parties, not wearing masks, and disregarding community pandemic norms would not put them in grave risk, but these beliefs are incorrect.
+
+\ 
+
+### The Table of Disease Cases for Age Group 20-24
+
+Additionally, the results in the table confirm that young adults aged 20-24 have the greatest risk of developing infectious illnesses of any age group, owing to their increased activity and lack of attention to infectious disease prevention.
+
+
+```{r , fig.cap ="",fig.width=6, fig.height=3, include=TRUE}
+summary_table <- data_cleaned %>% filter(!is.na(20-24)) %>% summarise(
+                                  min = min(20-24),
+                                  Q1 = quantile(20-24,0.25),
+                                  median = median(20-24),
+                                  Q3 = quantile(20-24,0.75),
+                                  max = max(20-24),
+                                  IQR = Q3 - Q1,
+                                  mean = mean(20-24), 
+                                  sd = sd(20-24), 
+                                  Small_Outliers = sum(20-24 < Q1 - 1.5*IQR),
+                                  Large_Outliers = sum(20-24 > Q3 + 1.5*IQR)) 
+# change their orders, add or remove some of them
+          knitr::kable(summary_table, caption = "Summary Table of Disease Cases for 20-24 Age Group")%>%
+  kable_classic(full_width = F, html_font = "Cambria") %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+It is anticipated that those statistics would increase young people's awareness of the need for infectious illness prevention and control. We should engage aggressively with the community to prevent and control epidemics, especially during COVID-19. To contribute, not just in terms of defending oneself, but also in terms of preventing the virus from spreading to other people [@YaC].
+
+\newpage
+
+# Reference
+
