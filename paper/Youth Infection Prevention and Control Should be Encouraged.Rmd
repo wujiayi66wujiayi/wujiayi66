@@ -7,6 +7,9 @@ abstract: "This report utilizes data on reported communicable diseases in Toront
 bibliography: ref_list.bib
 ---
 
+Here is a body text.^[This footnote will appear at the bottom of the page.:https://github.com/wujiayi66wujiayi/wujiayi66]
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
